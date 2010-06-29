@@ -26,8 +26,8 @@ define_tag:'init',
 
 	(self->'adaptorName') 	= #adaptor;
 	(self->'dbName') 		= #db;
-	(self->'queryAdaptor') 	= global:($mig_gAdaptorIndex->(find:(self->'adaptorName')));
-
+	//(self->'queryAdaptor') 	= global:($mig_gAdaptorIndex->(find:(self->'adaptorName')));
+	(self->'queryAdaptor') 	= mig_gAdaptorIndex->adaptors->find(self->'adaptorName');
 /define_tag;
 
 
