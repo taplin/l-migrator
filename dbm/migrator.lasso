@@ -31,16 +31,16 @@ else: client_getParams >> 'printSchema';
 		include:'/dbm/_resources/schemaView.dsp';
 	/iterate;
 
-else: !(action_params->find:'migrateTo') || ((action_params->find:'migrateTo')->last)->second == 0;
-
+//else: !(action_params->find:'migrateTo') || ((action_params->find:'migrateTo')->last)->second == 0;
+else( action_params->find('migrateTo')->size==0 )
 	'<h2>L-Migrator</h2>';
 	'<p>Please specify a target migration version number in the URL</p>';
 	'<p>migrator.lasso?migrateTo=N</p>';
 	'<p>Where N is currently a value from '; $migrator->'firstMigration'; ' to '; $migrator->'lastMigration'; '</p><p>';
 	loop: -from=($migrator->'firstMigration'), -to = ($migrator->'lastMigration');
 	($migrator->'currentVersion') == loop_count ?
-	'Migrate to '  loop_count '<br />'
-	| '<strong><a href="migrator.lasso?migrateTo=' loop_count '">Migrate to '  loop_count '</a></strong><br />' ;
+	'Migrate to '  +loop_count+ '<br />'
+	| '<strong><a href="migrator.lasso?migrateTo=' loop_count '">Migrate to '  +loop_count+ '</a></strong><br />' ;
 	/loop;
 	'</p><p>Current version is '; $migrator->'currentVersion'; '</p>';
 
@@ -62,7 +62,7 @@ else;
 
 <p>
 [iterate: $message, local('oneMessage');]
-<br />[loop_count ]. -> [ $oneMessage]
+<br />[loop_count ]. -> [ #oneMessage]
 [/iterate;]
 </p>
 </body>
