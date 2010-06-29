@@ -1,8 +1,8 @@
 <?lassoscript
 
-auth;
+auth_admin;
 
-var:'configFile' = 'migrator.cnfg';
+var:'configFile' = '/dbm/migrator.cnfg';
 
 //--------------------------------------
 
@@ -20,7 +20,7 @@ var:
 if: (file_exists:$configFile);
 	$message->Insert:('Config File Exists');
 	$configData = string:(file_read: $configFile);
-	$configData->(removeleading:bom_utf8);
+	//$configData->(removeleading:bom_utf8);
 
 //	split lines
 
