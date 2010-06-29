@@ -1,6 +1,6 @@
 ﻿<?lassoscript
 
-define_type:'migrationEngine';
+define_type('migrationEngine');
 
 	local:
 		'classPath'			= string,
@@ -63,12 +63,12 @@ define_tag:'getTableNames';
 //
 //------------------------------------------------------------------------------
 
-define_tag:'getCurrentVersion';
-
-	inline:
-		-database 	= (self->'dbName'),
+define_tag('getCurrentVersion');
+	
+	inline(
+			-database 	= (self->'dbName'),
 		-table 		= '_schemaInfo',
-		-findAll;
+		-findAll);
 
 		(self->'currentVersion') = integer:(field:'version');
 
@@ -85,7 +85,7 @@ define_tag:'getCurrentVersion';
 
 define_tag:'findMigrationLimits';
 
-	!(self->'migrationClassNames')
+	self->'migrationClassNames'->size==0
 		? self->loadClasses;
 
 	local:
@@ -190,9 +190,10 @@ define_tag:'updateSchema';
 			&& (#migrationVersion <= (self->'migrateToVersion'));
 
 			library:((self->'classPath') + #migrationClassName + '.ctyp');
-
+                        /*
 			#migrationObj = (\#migrationClassName)->asType;
-
+								*/
+			#migrationObj=(\#migrationClassName)->invoke()
 			#migrationObj->(init: 
 				-adaptor	= (self->'adaptorName'),
 				-db			= (self->'dbName'));
