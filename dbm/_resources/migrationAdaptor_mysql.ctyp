@@ -458,7 +458,7 @@ define_tag:'addTable';
 		? #tableType = 'MyISAM';
 	
 	#pkey
-		? #pkey = ', PRIMARY KEY (`' #name '`)'
+		? #pkey = ', PRIMARY KEY (`' +#name+ '`)'
 		| #pkey = '';
 		
 	#autoinc
@@ -622,11 +622,20 @@ define_tag:'removeIndex';
 //	and register this adaptor with the adaptors map
 //
 
-global:'mig_gActnAdaptorMySQL' = (migrationAdaptor_mysql);
+//variable:'mig_gActnAdaptorMySQL' = (migrationAdaptor_mysql);
+if(!lasso_tagexists('mig_gActnAdaptorMySQL'))
+define mig_gActnAdaptorMySQL => thread {
+		data public myself = migrationAdaptor_mysql
+		
+	}
+/if
 
-!global_defined:'mig_gAdaptorIndex'
-	? global:'mig_gAdaptorIndex' = map;
-
-$mig_gAdaptorIndex->(insert:'mysql' = 'mig_gActnAdaptorMySQL');
+if(!lasso_tagexists('mig_gAdaptorIndex'))
+	define mig_gAdaptorIndex => thread {
+		data public adaptors = map()
+		
+	}
+/if
+mig_gAdaptorIndex->adaptors->insert('mysql' = 'mig_gActnAdaptorMySQL');
 
 ?>
