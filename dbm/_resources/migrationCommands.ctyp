@@ -23,11 +23,12 @@ define_type:'migrationCommands';
 define_tag:'init',
 	-required = 'adaptor',
 	-required = 'db';
-
+	
 	(self->'adaptorName') 	= #adaptor;
 	(self->'dbName') 		= #db;
 	//(self->'queryAdaptor') 	= global:($mig_gAdaptorIndex->(find:(self->'adaptorName')));
-	(self->'queryAdaptor') 	= mig_gAdaptorIndex->adaptors->find(self->'adaptorName');
+	(self->'queryAdaptor') 	= mig_gAdaptorIndex->find(self->'adaptorName');
+	
 /define_tag;
 
 
@@ -115,13 +116,16 @@ define_tag:'addField',
 	-optional = 'after',	-type = string;
 
 	local:'thisQueryStatement'	= string;
+	local('rest_mod' = map())
+	#rest->forEach =>{
+		#rest_mod->insert(pair(#1->name, #1->value))
+	}
 	
-	!(params->contains:'-table')
-		? params->(insert: '-table'=(self->'tblName'));
+	! #rest_mod->contains('table') ? #rest_mod->insert('table'=self->'tblName');
 
-	#thisQueryStatement = (self->'queryAdaptor')->(addField: params);
+	#thisQueryStatement = self->'queryAdaptor'->addField(#rest_mod);
 	
-	self->(execute: #thisQueryStatement,
+	self->execute(#thisQueryStatement,
 			-operation = 'addField',
 			-itemName  = #name);
 		
@@ -146,14 +150,18 @@ define_tag:'renameField',
 	-optional = 'precision',-type = string,
 	-optional = 'scale',	-type = string;
 
+	local('rest_mod' = map())
+	#rest->forEach =>{
+		#rest_mod->insert(pair(#1->name, #1->value))
+	}
 	local:
 		'thisQueryStatement'	= string,
 		'thisQueryError'		= false;
 	
-	!(params->contains:'-table')
-		? params->(insert: '-table'=(self->'tblName'));
+	!(#rest_mod->contains:'table')
+		? #rest_mod>(insert: 'table'=(self->'tblName'));
 
-	#thisQueryStatement = (self->'queryAdaptor')->(renameField: params);
+	#thisQueryStatement = (self->'queryAdaptor')->(renameField: #rest_mod);
 	
 	self->(execute: #thisQueryStatement,
 			-operation = 'renameFieldTo',
@@ -176,10 +184,15 @@ define_tag:'removeField',
 		'thisQueryStatement'	= string,
 		'thisQueryError'		= false;
 	
-	!(params->contains:'-table')
-		? params->(insert: '-table'=(self->'tblName'));
+	local('rest_mod' = map())
+	#rest->forEach =>{
+		#rest_mod->insert(pair(#1->name, #1->value))
+	}
+	
+	!(#rest_mod->contains:'table')
+		? #rest_mod->(insert: 'table'=(self->'tblName'));
 
-	#thisQueryStatement = (self->'queryAdaptor')->(removeField: params);
+	#thisQueryStatement = (self->'queryAdaptor')->(removeField: #rest_mod);
 	
 	self->(execute: #thisQueryStatement,
 			-operation = 'removeField',
@@ -205,14 +218,19 @@ define_tag:'modifyField',
 	-optional = 'precision',-type = string,
 	-optional = 'scale',	-type = string;
 
+	local('rest_mod' = map())
+	#rest->forEach =>{
+		#rest_mod->insert(pair(#1->name, #1->value))
+	}
+	
 	local:
 		'thisQueryStatement'	= string,
 		'thisQueryError'		= false;
 	
-	!(params->contains:'-table')
-		? params->(insert: '-table'=(self->'tblName'));
+	!(#rest_mod->contains:'table')
+		? #rest_mod->(insert: 'table'=(self->'tblName'));
 
-	#thisQueryStatement = (self->'queryAdaptor')->(modifyField: params);
+	#thisQueryStatement = (self->'queryAdaptor')->(modifyField: #rest_mod);
 	
 	self->(execute: #thisQueryStatement,
 			-operation = 'modifyFieldTo',
@@ -230,14 +248,19 @@ define_tag:'modifyField',
 
 define_tag:'addTable',
 	-required = 'name',		-type = string;
-
+		
+	local('rest_mod' = map)()
+	#rest->forEach =>{
+		#rest_mod->insert(pair(#1->name, #1->value))
+	}
+	
 	local:
 		'thisQueryStatement'	= string,
 		'thisQueryError'		= false;
 	
-	#thisQueryStatement = (self->'queryAdaptor')->(addTable: params);
+	#thisQueryStatement = self->'queryAdaptor'->addTable(#rest_mod);
 	
-	self->(execute: #thisQueryStatement,
+	self->execute(#thisQueryStatement,
 			-operation = 'addTable',
 			-itemName  = #name);
 
@@ -254,14 +277,18 @@ define_tag:'renameTable',
 	-required = 'fromName',	-type = string,
 	-required = 'toName',	-type = string;
 
+	local('rest_mod' = map())
+	#rest->forEach =>{
+		#rest_mod->insert(pair(#1->name, #1->value))
+	}
 	local:
 		'thisQueryStatement'	= string,
 		'thisQueryError'		= false;
 	
-	!(params->contains:'-table')
-		? params->(insert: '-table'=(self->'tblName'));
+	!(#rest_mod->contains:'table')
+		? #rest_mod->(insert: 'table'=(self->'tblName'));
 
-	#thisQueryStatement = (self->'queryAdaptor')->(renameTable: params);
+	#thisQueryStatement = (self->'queryAdaptor')->(renameTable: #rest_mod);
 	
 	self->(execute: #thisQueryStatement,
 			-operation = 'renameTableTo',
@@ -278,11 +305,15 @@ define_tag:'renameTable',
 define_tag:'removeTable',
 	-required = 'name',		-type = string;
 
+	local('rest_mod' = map())
+	#rest->forEach =>{
+		#rest_mod->insert(pair(#1->name, #1->value))
+	}
 	local:
 		'thisQueryStatement'	= string,
 		'thisQueryError'		= false;
 	
-	#thisQueryStatement = (self->'queryAdaptor')->(removeTable: params);
+	#thisQueryStatement = (self->'queryAdaptor')->(removeTable: #rest_mod);
 	
 	self->(execute: #thisQueryStatement,
 			-operation = 'removeTable',
@@ -305,14 +336,19 @@ define_tag:'addIndex',
 	-required = 'field',	-type = string,
 	-optional = 'length',	-type = string;
 
+	local('rest_mod' = map())
+	#rest->forEach =>{
+		#rest_mod->insert(pair(#1->name, #1->value))
+	}
+	
 	local:
 		'thisQueryStatement'	= string,
 		'thisQueryError'		= false;
-	
-	!(params->contains:'-table')
-		? params->(insert: '-table'=(self->'tblName'));
 
-	#thisQueryStatement = (self->'queryAdaptor')->(addIndex: params);
+	!(#rest_mod->contains:'table')
+		? #rest_mod->(insert: 'table'=(self->'tblName'));
+
+	#thisQueryStatement = (self->'queryAdaptor')->(addIndex: #rest_mod);
 	
 	self->(execute: #thisQueryStatement,
 			-operation = 'addIndex',
@@ -331,14 +367,18 @@ define_tag:'removeIndex',
 	-optional = 'table',	-type = string,
 	-required = 'name',		-type = string;
 
+	local('rest_mod' = map())
+	#rest->forEach =>{
+		#rest_mod->insert(pair(#1->name, #1->value))
+	}
 	local:
 		'thisQueryStatement'	= string,
 		'thisQueryError'		= false;
 	
-	!(params->contains:'-table')
-		? params->(insert: '-table'=(self->'tblName'));
+	!(#rest_mod->contains:'table')
+		? #rest_mod->(insert: 'table'=(self->'tblName'));
 
-	#thisQueryStatement = (self->'queryAdaptor')->(removeIndex: params);
+	#thisQueryStatement = (self->'queryAdaptor')->(removeIndex: #rest_mod);
 	
 	self->(execute: #thisQueryStatement,
 			-operation = 'removeIndex',

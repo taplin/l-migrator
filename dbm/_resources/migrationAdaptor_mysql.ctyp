@@ -1,10 +1,10 @@
 ﻿<?lassoscript
 
-define_type:'migrationAdaptor_mysql';
+define_type('migrationAdaptor_mysql');
 
 //------------------------------------------------------------------------------
-define_tag:'convertFieldType',
-	-required = 'fieldType', -type = 'string';
+define_tag('convertFieldType',
+	-required = 'fieldType', -type = 'string');
 
 //	since my projects and most of the Lasso community's projects
 //	are on MySQL, we'll let MySQl column types prevail.
@@ -13,7 +13,7 @@ define_tag:'convertFieldType',
 //	doing this for all adaptors pretty much eliminates the db agnostic
 //	intention of an adaptor, but the architecture is here to support it
 
-	select: #fieldType;
+	select(#fieldType);
 	
 		case:'string';		return:'varchar';
 		case:'fixedString';	return:'char';
@@ -57,10 +57,10 @@ define_tag:'convertFieldType',
 
 
 //------------------------------------------------------------------------------
-define_tag:'setDefaultFor',
-	-required = 'fieldType', -type = 'string';
+define_tag('setDefaultFor',
+	-required = 'fieldType', -type = 'string');
 
-	select: #fieldType;
+	select(#fieldType);
 		case:'string';		return:' "" ';
 		case:'fixedString';	return:' "" ';
 		case:'radioBtns';	return:' "" ';
@@ -103,50 +103,49 @@ define_tag:'setDefaultFor',
 
 
 //------------------------------------------------------------------------------
-define_tag:'addField';
+define_tag('addField', -optional='query_data',
+		-optional='query', -type= string,
+		-optional='table', -type= string,
+		-optional='name', -type= string,
+		-optional='type', -type= string,
+		-optional='size', -type= string,
+		-optional='null', -type= boolean,
+		-optional='default', -type= string,
+		-optional='unsigned', -type= boolean,
+		-optional='precision', -type= string,
+		-optional='scale', -type= string,
+		-optional='after', -type= string);
+		
 
-	local:
-		'query'		= string,
-		'table' 	= string,
-		'name' 		= string,
-		'type' 		= string,
-		'size' 		= string,
-		'null' 		= boolean,
-		'default' 	= string,
-		'unsigned'	= boolean,
-		'precision' = string,
-		'scale'		= string,
-		'after'		= string;
+	(#query_data->find:'table')
+		? #table = (#query_data->find:'table');
 
-	((params->last)->find:'-table')
-		? #table = ((params->last)->find:'-table')->last->second;
+	(#query_data->find:'name')
+		? #name = (#query_data->find:'name');
 
-	((params->last)->find:'-name')
-		? #name = ((params->last)->find:'-name')->last->second;
+	(#query_data->find:'type')
+		? #type = (#query_data->find:'type');
 
-	((params->last)->find:'-type')
-		? #type = ((params->last)->find:'-type')->last->second;
+	(#query_data->find:'size')
+		? #size = (#query_data->find:'size');
 
-	((params->last)->find:'-size')
-		? #size = ((params->last)->find:'-size')->last->second;
+	(#query_data->find:'null')
+		? #null = (#query_data->find:'null');
 
-	((params->last)->find:'-null')
-		? #null = ((params->last)->find:'-null')->last->second;
+	(#query_data->find:'default')
+		? #default = (#query_data->find:'default');
 
-	((params->last)->find:'-default')
-		? #default = ((params->last)->find:'-default')->last->second;
+	(#query_data->find:'unsigned')
+		? #unsigned = (#query_data->find:'unsigned');
 
-	((params->last)->find:'-unsigned')
-		? #unsigned = ((params->last)->find:'-unsigned')->last->second;
+	(#query_data->find:'precision')
+		? #precision = (#query_data->find:'precision');
 
-	((params->last)->find:'-precision')
-		? #precision = ((params->last)->find:'-precision')->last->second;
+	(#query_data->find:'scale')
+		? #scale = (#query_data->find:'scale');
 
-	((params->last)->find:'-scale')
-		? #scale = ((params->last)->find:'-scale')->last->second;
-
-	((params->last)->find:'-after')
-		? #after = ((params->last)->find:'-after')->last->second;
+	(#query_data->find:'after')
+		? #after = (#query_data->find:'after');
 
 	!#type
 		? #type = 'string';
@@ -162,15 +161,12 @@ define_tag:'addField';
 	!#size
 		? #size = (#precision + ',' + #scale);
 		
-	fail_if: 
-		#size == ',',
-		'5000',
-		'addField requires that either -size or -precision and -scale be defined';
+	fail_if(#size == ',', 5000, 'addField requires that either -size or -precision and -scale be defined');
 		
 	!#default
-		? #default = self->(setDefaultFor:#type);
+		? #default = self->setDefaultFor(#type);
 
-	#type = self->(convertFieldType:#type);
+	#type = self->convertFieldType(#type);
 
 	#query += 'ALTER TABLE ';
 	#query += #table;
@@ -187,12 +183,12 @@ define_tag:'addField';
 	#query += ' ';
 	#query += 'DEFAULT ';
 	#query += #default;
-	if: #after;
+	if(#after);
 		#query += ' AFTER ';
 		#query += #after;
 	/if;
 
-	return: #query;
+	return(#query);
 
 /define_tag;
 
@@ -204,11 +200,11 @@ define_tag:'removeField';
 		'table' 	= string,
 		'name' 		= string;
 
-	((params->last)->find:'-table')
-		? #table = ((params->last)->find:'-table')->last->second;
+	(params->last)>>('table')
+		? #table = ((params->last)->find:'table');
 
-	((params->last)->find:'-name')
-		? #name = ((params->last)->find:'-name')->last->second;
+	(params->last)>>('name')
+		? #name = ((params->last)->find:'name');
 
 
 	#query += 'ALTER TABLE ';
@@ -403,73 +399,49 @@ define_tag:'addTable';
 		'charset'	=	string,
 		'pkey' 			= boolean,
 		'autoinc' 	= boolean;
-
-	((params->last)->find:'-table')
-		? #table = ((params->last)->find:'-table')->last->second;
-
-	((params->last)->find:'-tableType')
-		? #tableType = ((params->last)->find:'-tableType')->last->second;
-
-	((params->last)->find:'-name')
-		? #name = ((params->last)->find:'-name')->last->second;
-
-	((params->last)->find:'-type')
-		? #type = ((params->last)->find:'-type')->last->second;
-
-	((params->last)->find:'-size')
-		? #size = ((params->last)->find:'-size')->last->second;
-
-	((params->last)->find:'-null')
-		? #null = ((params->last)->find:'-null')->last->second;
-
-	((params->last)->find:'-default')
-		? #default = ((params->last)->find:'-default')->last->second;
-
-	((params->last)->find:'-unsigned')
-		? #unsigned = ((params->last)->find:'-unsigned')->last->second;
-
-	((params->last)->find:'-precision')
-		? #precision = ((params->last)->find:'-precision')->last->second;
-
-	((params->last)->find:'-scale')
-		? #scale = ((params->last)->find:'-scale')->last->second;
-		
-	((params->last)->find:'-charset')
-		? #charset = ((params->last)->find:'-charset')->last->second;
-		
-	((params->last)->find:'-pkey')
-		? #pkey = ((params->last)->find:'-pkey')->last->second;
-		
-	((params->last)->find:'-autoinc')
-		? #autoinc = ((params->last)->find:'-autoinc')->last->second;
-
-	#null
-		? #null = 'NULL'
-		| #null = 'NOT NULL';
-
-	!#charset
-		? #charset = 'utf8';
-		
-	#unsigned
-		? #unsigned = 'unsigned'
-		| #unsigned = '';
-
-	!#tableType
-		? #tableType = 'MyISAM';
+	local('params_map' = #rest->last)
 	
-	#pkey
-		? #pkey = ', PRIMARY KEY (`' +#name+ '`)'
-		| #pkey = '';
+	#params_map->find('table') ? #table = #params_map->find('table');
+
+	#params_map->find('tableType') ? #tableType = #params_map->find('tableType');
+
+	#params_map->find('name') ? #name = #params_map->find('name');
+
+	#params_map->find('type') ? #type = #params_map->find('type');
+
+	#params_map->find('size') ? #size = #params_map->find('size');
+
+	#params_map->find('null') ? #null = #params_map->find('null');
+
+	#params_map->find('default') ? #default = #params_map->find('default');
+
+	#params_map->find('unsigned') ? #unsigned = #params_map->find('unsigned');
+
+	#params_map->find('precision') ? #precision = #params_map->find('precision');
+
+	#params_map->find('scale') ? #scale = #params_map->find('scale');
 		
-	#autoinc
-		? #autoinc = 'AUTO_INCREMENT'
-		| #autoinc = '';
+	#params_map->find('charset') ? #charset = #params_map->find('charset');
+		
+	#params_map->find('pkey') ? #pkey = #params_map->find('pkey');
+		
+	#params_map->find('autoinc') ? #autoinc = #params_map->find('autoinc');
 
-	!#size
-		? #size = (#precision + ',' + #scale);
+	#null ? #null = 'NULL' | #null = 'NOT NULL';
 
-	!#default
-		? #default = self->(setDefaultFor:#type);
+	!#charset ? #charset = 'utf8';
+		
+	#unsigned ? #unsigned = 'unsigned' | #unsigned = '';
+
+	!#tableType ? #tableType = 'MyISAM';
+	
+	#pkey ? #pkey = ', PRIMARY KEY (`' +#name+ '`)' | #pkey = '';
+		
+	#autoinc ? #autoinc = 'AUTO_INCREMENT' | #autoinc = '';
+
+	!#size ? #size = (#precision + ',' + #scale);
+
+	!#default ? #default = self->(setDefaultFor:#type);
 
 	#type = self->(convertFieldType:#type);
 
@@ -510,8 +482,8 @@ define_tag:'removeTable';
 		'query'		= string,
 		'name' 		= string;
 
-	((params->last)->find:'-name')
-		? #name = ((params->last)->find:'-name')->last->second;
+	(params->last)>>('name')
+		? #name = ((params->last)->find:'name');
 
 	#query += 'DROP TABLE ';
 	#query += #name;
@@ -528,11 +500,11 @@ define_tag:'renameTable';
 		'fromName' 	= string,
 		'toName' 	= string;
 
-	((params->last)->find:'-fromName')
-		? #fromName = ((params->last)->find:'-fromName')->last->second;
+	(params->last)>>('fromName')
+		? #fromName = ((params->last)->find:'fromName');
 
-	((params->last)->find:'-toName')
-		? #toName = ((params->last)->find:'-toName')->last->second;
+	(params->last)>>('toName')
+		? #toName = ((params->last)->find:'toName');
 
 	#query += 'RENAME TABLE ';
 	#query += #fromName;
@@ -554,20 +526,20 @@ define_tag:'addIndex';
 		'field' 	= string,
 		'length' 	= integer;
 
-	((params->last)->find:'-table')
-		? #table = ((params->last)->find:'-table')->last->second;
+	(params->last)>>('table')
+		? #table = ((params->last)->find:'table');
 
-	((params->last)->find:'-name')
-		? #name = ((params->last)->find:'-name')->last->second;
+	(params->last)>>('name')
+		? #name = ((params->last)->find:'name');
 
-	((params->last)->find:'-type')
-		? #type = ((params->last)->find:'-type')->last->second;
+	(params->last)>>('type')
+		? #type = ((params->last)->find:'type');
 
-	((params->last)->find:'-field')
-		? #field = ((params->last)->find:'-field')->last->second;
+	(params->last)>>('field')
+		? #field = ((params->last)->find:'field');
 
-	((params->last)->find:'-length')
-		? #length = ((params->last)->find:'-length')->last->second;
+	(params->last)>>('length')
+		? #length = ((params->last)->find:'length');
 
 	#query += 'CREATE ';
 	#query += #type;
@@ -597,11 +569,11 @@ define_tag:'removeIndex';
 		'table' 	= string,
 		'name' 		= string;
 
-	((params->last)->find:'-table')
-		? #table = ((params->last)->find:'-table')->last->second;
+	(params->last)>>('table')
+		? #table = ((params->last)->find:'table');
 
-	((params->last)->find:'-name')
-		? #name = ((params->last)->find:'-name')->last->second;
+	(params->last)>>('name')
+		? #name = ((params->last)->find:'name');
 
 	#query += 'DROP INDEX ';
 	#query += #name;
@@ -623,19 +595,18 @@ define_tag:'removeIndex';
 //
 
 //variable:'mig_gActnAdaptorMySQL' = (migrationAdaptor_mysql);
-if(!lasso_tagexists('mig_gActnAdaptorMySQL'))
-define mig_gActnAdaptorMySQL => thread {
-		data public myself = migrationAdaptor_mysql
-		
-	}
-/if
 
-if(!lasso_tagexists('mig_gAdaptorIndex'))
-	define mig_gAdaptorIndex => thread {
-		data public adaptors = map()
+define mig_gActnAdaptorMySQL => thread {
+		parent migrationAdaptor_mysql
 		
 	}
-/if
-mig_gAdaptorIndex->adaptors->insert('mysql' = 'mig_gActnAdaptorMySQL');
+
+
+	define mig_gAdaptorIndex => thread {
+		parent map 
+		
+	}
+
+mig_gAdaptorIndex->insert('mysql' = mig_gActnAdaptorMySQL);
 
 ?>

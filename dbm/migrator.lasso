@@ -1,9 +1,10 @@
-﻿[include:'/dbm/_resources/migratorStartup.lgc']
+﻿
+[include('/dbm/_resources/migratorStartup.lgc')]
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<title>Migrations for [$migrator->'dbName']</title>
+<title>Migrations for [$configData][$migrator->'dbName']</title>
 <link rel="stylesheet" type="text/css" href="/dbm/_resources/styles.css" />
 </head>
 <body>
@@ -15,7 +16,7 @@
 	'<a href="migrator.lasso?getVersion"><img src="/dbm/_resources/btn_getVersion.gif" alt="" width="120" height="20" border="0" /></a>&nbsp;';
 	'<a href="migrator.lasso?printSchema"><img src="/dbm/_resources/btn_printSchema.gif" alt="" width="120" height="20" border="0" /></a></p>';
 	'<hr>';
-
+log_critical('migrateTo:' + action_params)
 if: client_getParams >> 'getVersion';
 
 	'<h2>Database '; $migrator->'dbName'; ' v.'; $migrator->'currentVersion'; '</h2> \r';
@@ -31,7 +32,7 @@ else: client_getParams >> 'printSchema';
 		include:'/dbm/_resources/schemaView.dsp';
 	/iterate;
 
-//else: !(action_params->find:'migrateTo') || ((action_params->find:'migrateTo')->last)->second == 0;
+//else(!(action_params->find:'migrateTo') || action_params->find('migrateTo')->last->second == 0 );
 else( action_params->find('migrateTo')->size==0 )
 	'<h2>L-Migrator</h2>';
 	'<p>Please specify a target migration version number in the URL</p>';
@@ -39,8 +40,8 @@ else( action_params->find('migrateTo')->size==0 )
 	'<p>Where N is currently a value from '; $migrator->'firstMigration'; ' to '; $migrator->'lastMigration'; '</p><p>';
 	loop: -from=($migrator->'firstMigration'), -to = ($migrator->'lastMigration');
 	($migrator->'currentVersion') == loop_count ?
-	'Migrate to '  +loop_count+ '<br />'
-	| '<strong><a href="migrator.lasso?migrateTo=' loop_count '">Migrate to '  +loop_count+ '</a></strong><br />' ;
+	'Migrate to ' + loop_count + '<br />'
+	| '<strong><a href="migrator.lasso?migrateTo='+ loop_count +'">Migrate to ' + loop_count +'</a></strong><br />' ;
 	/loop;
 	'</p><p>Current version is '; $migrator->'currentVersion'; '</p>';
 

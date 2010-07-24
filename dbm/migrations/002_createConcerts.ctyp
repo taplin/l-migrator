@@ -14,12 +14,12 @@ define_type:'002_createConcerts', 'migrationCommands';
 	//	or with -table in each operation
 	
 	self->(addTable:	
-		-table	= 'concerts',
-		-name	= 'ID',
-		-type	= 'int',
-		-size	= '11',
-		-autoinc=true,
-		-pkey=true);
+		'table'	= 'concerts',
+		'name'	= 'ID',
+		'type'	= 'int',
+		'size'	= '11',
+		'autoinc'=true,
+		'pkey'=true);
 		
 		self->'tblName' = 'concerts';
 		self->(addField:

@@ -1,7 +1,7 @@
-﻿dbName 		= l_migrator
+﻿dbName 		= carbarn
 migAdaptor	= mysql
 migPath 	= /dbm/migrations/
-messageOn	= no
+messageOn	= yes
 #--------------------------------------------------------------------
 #	Before you can use L-Migrator, add this table to your database
 #
